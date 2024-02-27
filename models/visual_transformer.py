@@ -15,18 +15,6 @@ class VisualTransformer(nn.Module):
         self.dropout = dropout
         self.expected_dimension = expected_dimension
         self.latent_space_dim = (expected_dimension[1] // patch_size) * (expected_dimension[2] // patch_size) * expected_dimension[0]
-
-        self.patch_encoding = nn.Sequential(
-            nn.Conv2d(
-                in_channels=expected_dimension[0],
-                out_channels=expected_dimension[0],
-                kernel_size=patch_size,
-                stride=patch_size,
-                padding=0
-            ),
-            nn.Dropout(dropout),
-            nn.Flatten(start_dim=2)
-        )
         
         self.transformer = nn.Transformer(
             d_model=(expected_dimension[0] * patch_size * patch_size),
@@ -37,26 +25,6 @@ class VisualTransformer(nn.Module):
             dropout=dropout,
             batch_first=True,
             activation="gelu"
-        )
-
-        self.patch_decoding = nn.Sequential(
-            nn.Unflatten(1, (expected_dimension[0], expected_dimension[1] // patch_size, expected_dimension[2] // patch_size)),
-            nn.Upsample(scale_factor=patch_size//2, mode='nearest'),
-            nn.Conv2d(
-                in_channels=expected_dimension[0],
-                out_channels=expected_dimension[0],
-                kernel_size=3,
-                stride=1,
-                padding=1
-            ),
-            nn.Upsample(scale_factor=2, mode='nearest'),
-            nn.Conv2d(
-                in_channels=expected_dimension[0],
-                out_channels=expected_dimension[0],
-                kernel_size=3,
-                stride=1,
-                padding=1
-            )
         )
 
     def create_patches(self, x):
@@ -95,6 +63,15 @@ class VisualTransformer(nn.Module):
             pos[:, 1::2] = torch.cos(position / div_term[:-1])  # ignore the last term
         return pos
     
+    def encoder(self, x):
+        x = self.create_patches(x)
+        pos_encoding = self.positional_encoding(x.shape[1], x.shape[2])
+        pos_encoding = pos_encoding.unsqueeze(0).to(x.device)
+        pos_encoding = pos_encoding.expand(x.shape[0], -1, -1)
+        x = x + 0.3*pos_encoding
+        x = self.transformer.encoder(x)
+        return x
+    
     def forward(self, x):
         x = self.create_patches(x)
 
@@ -106,5 +83,4 @@ class VisualTransformer(nn.Module):
         x = self.transformer(x, x)
         
         x = self.reconstruct_images(x)
-        #x = self.patch_decoding(x)
         return x

@@ -153,12 +153,8 @@ Makefile
 .pylance.*
 
 
-
-# Plots
-*.png
-
-# Saved models
-*.pt
-
 # Downloaded datasets
-data/
+data/*
+
+# Old files
+old/

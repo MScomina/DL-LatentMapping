@@ -31,25 +31,18 @@ epochs_decay = 10
 load_model = True
 
 # Autoencoder parameters
-linear_layers = 3
 autoencoder_save_path = "autoencoder"
 
 # Transformer models parameters
 nhead = 4
-num_encoder_layers = 4
-num_decoder_layers = 4
+num_encoder_layers = 3
+num_decoder_layers = 3
 dim_feedforward = 1024
 transformer_save_path = "visual_transformer"
 
-# Generative models parameters
-mask_prob = 0.1
-blank_probability = 0.05
-label_dim = 10
-noise_dim = 128
-
 def autoencoder_model(latent_space_size = -1, dataset_name=dataset_path, batch_size = batch_size, epochs = epochs, lr = lr,
                       weight_decay = weight_decay, dropout = dropout, load_model = load_model, rotations = rotations, patch_size = patch_size, 
-                      gamma_decay = gamma_decay, epochs_decay = epochs_decay, linear_layers = linear_layers, save_name = autoencoder_save_path):
+                      gamma_decay = gamma_decay, epochs_decay = epochs_decay, save_name = autoencoder_save_path):
     
     train_dataset, expected_output_dim = get_dataset(dataset_name, train=True)
     train_size = int(train_split * len(train_dataset))
@@ -63,12 +56,15 @@ def autoencoder_model(latent_space_size = -1, dataset_name=dataset_path, batch_s
     model = AutoEncoder(
         latent_space_size=latent_space_size, 
         expected_output_dim=expected_output_dim,
-        dropout=dropout,
-        linear_layers=linear_layers
+        dropout=dropout
     )
 
-    if load_model and os.path.isfile("models/"+dataset_name+"/"+save_name+".pt"):
-        model.load_state_dict(torch.load("models/"+dataset_name+"/"+save_name+".pt"))
+    if load_model:
+        if os.path.isfile("models/"+dataset_name+"/"+save_name+".pt"):
+            model.load_state_dict(torch.load("models/"+dataset_name+"/"+save_name+".pt"))
+        else:
+            print("No model found, skipping training.")
+            return
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = model.to(device)
@@ -170,8 +166,12 @@ def visual_transformer_model(nhead = nhead, num_encoder_layers = num_encoder_lay
         expected_dimension=expected_output_dim
     )
 
-    if load_model and os.path.isfile("models/"+dataset_path+"/"+save_name+".pt"):
-        model.load_state_dict(torch.load("models/"+dataset_path+"/"+save_name+".pt"))
+    if load_model:
+        if os.path.isfile("models/"+dataset_name+"/"+save_name+".pt"):
+            model.load_state_dict(torch.load("models/"+dataset_name+"/"+save_name+".pt"))
+        else:
+            print("No model found, skipping training.")
+            return
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = model.to(device)
@@ -203,7 +203,7 @@ def visual_transformer_model(nhead = nhead, num_encoder_layers = num_encoder_lay
         dataset=val_dataset,
         device=device,
         batch_size=batch_size,
-        shuffle=False,
+        shuffle=True,
         transform=transform
     )
 

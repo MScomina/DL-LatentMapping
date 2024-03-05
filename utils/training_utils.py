@@ -4,7 +4,6 @@ from torch.utils.data import Dataset, DataLoader
 from torch.utils.data import TensorDataset
 import torchvision
 from PIL import Image
-from torchvision.transforms import ToPILImage, ToTensor
 import numpy as np
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

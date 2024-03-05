@@ -63,7 +63,7 @@ class VisualTransformer(nn.Module):
             pos[:, 1::2] = torch.cos(position / div_term[:-1])  # ignore the last term
         return pos
     
-    def encoder(self, x):
+    def encoder(self, x) -> torch.Tensor:
         x = self.create_patches(x)
         pos_encoding = self.positional_encoding(x.shape[1], x.shape[2])
         pos_encoding = pos_encoding.unsqueeze(0).to(x.device)
@@ -78,9 +78,9 @@ class VisualTransformer(nn.Module):
         pos_encoding = self.positional_encoding(x.shape[1], x.shape[2])
         pos_encoding = pos_encoding.unsqueeze(0).to(x.device)
         pos_encoding = pos_encoding.expand(x.shape[0], -1, -1)
-        x = x + 0.3*pos_encoding
+        x_encoded = x + 0.3*pos_encoding
         
-        x = self.transformer(x, x)
+        x = self.transformer(x_encoded, x)
         
         x = self.reconstruct_images(x)
         return x

@@ -1,7 +1,7 @@
 from torch import nn
 
 class AutoEncoder(nn.Module):
-    def __init__(self, latent_space_size, expected_output_dim = (3, 32, 32), dropout=0.0, linear_layers=0):
+    def __init__(self, latent_space_size, expected_output_dim = (3, 32, 32), dropout=0.0):
         super(AutoEncoder, self).__init__()
 
         self.expected_output_dim = expected_output_dim
@@ -23,18 +23,9 @@ class AutoEncoder(nn.Module):
             nn.BatchNorm2d(16),
             nn.GELU(),
             nn.Flatten(),
-            nn.Linear(expected_output_dim[1]*expected_output_dim[2], latent_space_size) # 16 * (expected_output_dim[1]*expected_output_dim[2])//16
+            nn.Linear(expected_output_dim[1]*expected_output_dim[2], latent_space_size), # 16 * (expected_output_dim[1]*expected_output_dim[2])//16
+            nn.LayerNorm(latent_space_size, elementwise_affine=False)
         )
-
-        self.linear_layers_list = []
-        for i in range(linear_layers):
-            self.linear_layers_list.append(nn.GELU())
-            self.linear_layers_list.append(nn.Dropout(dropout))
-            if i != linear_layers-1:
-                self.linear_layers_list.append(nn.Linear(latent_space_size, latent_space_size))
-
-        self.linear_layers = nn.Sequential(*self.linear_layers_list)
-
 
         self.decoder = nn.Sequential(
             nn.Linear(latent_space_size, expected_output_dim[1]*expected_output_dim[2]), # 16 * (expected_output_dim[1]*expected_output_dim[2])//16
@@ -66,7 +57,5 @@ class AutoEncoder(nn.Module):
 
     def forward(self, x):
         x = self.encoder(x)
-        if len(self.linear_layers_list) > 0:
-            x = self.linear_layers(x)
         x = self.decoder(x)
         return x

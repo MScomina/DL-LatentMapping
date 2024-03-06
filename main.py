@@ -16,20 +16,20 @@ def train_dataset(dataset_name : str, transformer : bool = False) -> None:
     train_model(dataset_name, load_model=True, latent_space=24, dropout=0.5)
     train_model(dataset_name, load_model=True, latent_space=48, dropout=0.5)
     train_model(dataset_name, load_model=True, latent_space=72, dropout=0.5)
-    train_model(dataset_name, load_model=False, latent_space=96, dropout=0.5)
-    train_model(dataset_name, load_model=False, latent_space=120, dropout=0.5)
-    train_model(dataset_name, load_model=False, latent_space=180, dropout=0.5)
+    train_model(dataset_name, load_model=True, latent_space=96, dropout=0.5)
+    train_model(dataset_name, load_model=True, latent_space=120, dropout=0.5)
+    train_model(dataset_name, load_model=True, latent_space=180, dropout=0.5)
     if transformer:
-        train_model(dataset_name, transformer=True, load_model=True, latent_space=48, dropout=0.5)
+        train_model(dataset_name, transformer=True, load_model=True, latent_space=180, dropout=0.5)
         
 def main():     
-    train_dataset("fmnist", transformer=False)
-    train_dataset("mnist", transformer=False)
-    train_dataset("kmnist", transformer=False)
+    train_dataset("fmnist", transformer=True)
+    train_dataset("mnist", transformer=True)
+    train_dataset("kmnist", transformer=True)
     train_dataset("cifar10", transformer=True)
     train_dataset("svhn", transformer=True)
     latent_mapping.pca_comparison(n_of_anchors=30, n_of_points=10000, alpha=0.6, k_neighbours=10,
-                                  dataset_name="kmnist", use_transformer=True, latent_space_size=48, dim_feedforward=180)
+                                  dataset_name="mnist", use_transformer=True, latent_space_size=48, dim_feedforward=180)
 
 
 if __name__ == "__main__": 
